@@ -28,14 +28,12 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          # Replace <your-username> with your GitHub username
           tags: ghcr.io/09samuel/tmdbproxy:latest
 
       # Trigger Render deployment
       - name: Deploy on Render
         run: |
-          curl -X POST \
-            -H "Accept: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -d '{}' \
-            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+          curl -X POST -H "Accept: application/json" \
+               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+               -d '{}' \
+               "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
