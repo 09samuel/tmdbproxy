@@ -29,7 +29,7 @@ jobs:
           file: ./Dockerfile
           push: true
           # Replace <your-username> with your GitHub username
-          tags: ghcr.io/samuel09/tmdbproxy:latest
+          tags: ghcr.io/09samuel/tmdbproxy:latest
 
       # Trigger Render deployment
       - name: Deploy on Render
