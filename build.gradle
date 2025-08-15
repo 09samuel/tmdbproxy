@@ -38,7 +38,6 @@ dependencies {
 
 	//Bucket4j
 	implementation 'com.bucket4j:bucket4j-core:8.10.1'
-	implementation 'com.bucket4j:bucket4j-redis-lettuce:8.10.1'
 
 	// Resilience4j core and modules
 	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
