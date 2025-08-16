@@ -34,6 +34,8 @@ public class SeriesController {
     @GetMapping("/top-rated")
     public Mono<SeriesListDto> topRated(@RequestParam(defaultValue = "1") @Min(1) int page) {
         log.info("Fetching top-rated series, page={}", page);
+
+
         return service.getSeriesList(page)
                 .timeout(Duration.ofSeconds(10))
                 .onErrorResume(e -> {

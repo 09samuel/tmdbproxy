@@ -26,11 +26,11 @@ import java.util.Objects;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final RateLimitFilter rateLimitFilter;
-
-    public SecurityConfig(RateLimitFilter rateLimitFilter) {
-        this.rateLimitFilter = rateLimitFilter;
-    }
+//    private final RateLimitFilter rateLimitFilter;
+//
+//    public SecurityConfig(RateLimitFilter rateLimitFilter) {
+//        this.rateLimitFilter = rateLimitFilter;
+//    }
 
     @Value("${supabase.jwt.secret}")
     private String secret;
