@@ -124,6 +124,5 @@ public class SeriesController {
                     return Mono.error(e);
                 });
     }
-
 }
 
