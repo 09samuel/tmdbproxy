@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitConfig rateLimitConfig;
     private final Bucket globalBucket;
+
+    @Value("${ratelimit.enabled:false}")  // defaults to false if property is missing
+    private boolean rateLimitEnabled;
 
     public RateLimitFilter(@NonNull RateLimitConfig rateLimitConfig) {
         this.rateLimitConfig = rateLimitConfig;
@@ -38,6 +42,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        if (!rateLimitEnabled) {  // 🚀 Skip filtering if disabled
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = (auth != null) ? auth.getName() : request.getRemoteAddr();
