@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -45,11 +46,18 @@ public class SeriesService {
                         .queryParam("language", "en-US")
                         .queryParam("api_key", apiKey)
                         .build())
+                .headers(headers -> {
+                    log.info("Proxying to TMDB with headers: {}", headers);
+                })
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> {
+                    log.error("TMDB returned error status: {}", response.statusCode());
+                    return response.createException();
+                })
                 .bodyToMono(SeriesListDto.class);
     }
 
-    public Mono<SeriesListDto> searchSeries(String query, int page) {
+        public Mono<SeriesListDto> searchSeries(String query, int page) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search/tv")
@@ -59,7 +67,14 @@ public class SeriesService {
                         .queryParam("page", page)
                         .queryParam("api_key", apiKey)
                         .build())
+                .headers(headers -> {
+                    log.info("Proxying to TMDB with headers: {}", headers);
+                })
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> {
+                    log.error("TMDB returned error status: {}", response.statusCode());
+                    return response.createException();
+                })
                 .bodyToMono(SeriesListDto.class);
     }
 
@@ -81,7 +96,14 @@ public class SeriesService {
                         .queryParam("language", "en-US")
                         .queryParam("api_key", apiKey)
                         .build(seriesId))
+                .headers(headers -> {
+                    log.info("Proxying to TMDB with headers: {}", headers);
+                })
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> {
+                    log.error("TMDB returned error status: {}", response.statusCode());
+                    return response.createException();
+                })
                 .bodyToMono(RecommendationsListDto.class);
     }
 
@@ -103,7 +125,14 @@ public class SeriesService {
                         .queryParam("language", "en-US")
                         .queryParam("api_key", apiKey)
                         .build(seriesId))
+                .headers(headers -> {
+                    log.info("Proxying to TMDB with headers: {}", headers);
+                })
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> {
+                    log.error("TMDB returned error status: {}", response.statusCode());
+                    return response.createException();
+                })
                 .bodyToMono(SeriesWatchProvidersDto.class);
     }
 
