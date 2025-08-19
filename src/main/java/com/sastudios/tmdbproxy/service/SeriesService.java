@@ -57,7 +57,10 @@ public class SeriesService {
                 .bodyToMono(SeriesListDto.class);
     }
 
-        public Mono<SeriesListDto> searchSeries(String query, int page) {
+    @Cacheable(value = "searchSeries", key = "{#query, #page}", unless = "#result == null")
+    @Retry(name = "tmdb")
+    @CircuitBreaker(name = "tmdb", fallbackMethod = "fallbackSeriesSearch")
+    public Mono<SeriesListDto> searchSeries(String query, int page) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search/tv")
@@ -78,6 +81,9 @@ public class SeriesService {
                 .bodyToMono(SeriesListDto.class);
     }
 
+    @Cacheable(value = "generalDetails", key = "#seriesId", unless = "#result == null")
+    @Retry(name = "tmdb")
+    @CircuitBreaker(name = "tmdb", fallbackMethod = "fallbackGeneralDetails")
     public Mono<GeneralDetailsDto> getGeneralDetails(int seriesId) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
@@ -89,6 +95,9 @@ public class SeriesService {
                 .bodyToMono(GeneralDetailsDto.class);
     }
 
+    @Cacheable(value = "recommendations", key = "#seriesId", unless = "#result == null")
+    @Retry(name = "tmdb")
+    @CircuitBreaker(name = "tmdb", fallbackMethod = "fallbackRecommendations")
     public Mono<RecommendationsListDto> getRecommendations(int seriesId) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
@@ -107,6 +116,9 @@ public class SeriesService {
                 .bodyToMono(RecommendationsListDto.class);
     }
 
+    @Cacheable(value = "episodes", key = "{#seriesId, #seasonNo}", unless = "#result == null")
+    @Retry(name = "tmdb")
+    @CircuitBreaker(name = "tmdb", fallbackMethod = "fallbackEpisodes")
     public Mono<EpisodesListDto> getEpisodes(int seriesId, int seasonNo) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
@@ -118,6 +130,9 @@ public class SeriesService {
                 .bodyToMono(EpisodesListDto.class);
     }
 
+    @Cacheable(value = "watchProviders", key = "#seriesId", unless = "#result == null")
+    @Retry(name = "tmdb")
+    @CircuitBreaker(name = "tmdb", fallbackMethod = "fallbackWatchProviders")
     public Mono<SeriesWatchProvidersDto> getWatchProviders(int seriesId) {
         return client.get()
                 .uri(uriBuilder -> uriBuilder
@@ -143,5 +158,43 @@ public class SeriesService {
         fallback.setPage(page);
         fallback.setResults(List.of());
         return Mono.just(fallback);
+    }
+
+    private Mono<SeriesListDto> fallbackSeriesSearch(String query, int page, Throwable t) {
+        log.error("Fallback triggered for search query='{}' page={} due to {}", query, page, t.toString());
+        return Mono.just(new SeriesListDto(page, Collections.emptyList(), 0, 0));
+    }
+
+    private Mono<GeneralDetailsDto> fallbackGeneralDetails(int seriesId, Throwable t) {
+        log.error("Fallback triggered for generalDetails seriesId {} due to {}", seriesId, t.toString());
+        GeneralDetailsDto dto = new GeneralDetailsDto();
+        dto.setId(seriesId);
+        dto.setName("Unknown");
+        dto.setOverview("No details available due to service error.");
+        dto.setSeasons(Collections.emptyList());
+        dto.setGenres(Collections.emptyList());
+        dto.setNetworks(Collections.emptyList());
+        return Mono.just(dto);
+    }
+
+    private Mono<RecommendationsListDto> fallbackRecommendations(int seriesId, Throwable t) {
+        log.error("Fallback triggered for recommendations seriesId {} due to {}", seriesId, t.toString());
+        return Mono.just(new RecommendationsListDto( 0, List.of(), 0, 0));
+    }
+
+    private Mono<EpisodesListDto> fallbackEpisodes(int seriesId, int seasonNo, Throwable t) {
+        log.error("Fallback triggered for episodes seriesId {} season {} due to {}", seriesId, seasonNo, t.toString());
+        return Mono.just(new EpisodesListDto(
+                null, // _id
+                null, // airDate
+                Collections.emptyList(), // episodes
+                seriesId, // id
+                "" // name
+        ));
+    }
+
+    private Mono<SeriesWatchProvidersDto> fallbackWatchProviders(int seriesId, Throwable t) {
+        log.error("Fallback triggered for watchProviders seriesId {} due to {}", seriesId, t.toString());
+        return Mono.just(new SeriesWatchProvidersDto(seriesId, Collections.emptyMap()));
     }
 }

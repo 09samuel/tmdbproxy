@@ -12,6 +12,4 @@ import java.util.Map;
 public class SeriesWatchProvidersDto {
     private Integer id;
     private Map<String, CountryWatchProvider> results;
-
-
 }
